@@ -41,3 +41,5 @@ public class Question {
 
     //we want to keep the user anyonmous so we are not keeping the authorId.
 }
+
+//Question has many tags and one tag has many questions

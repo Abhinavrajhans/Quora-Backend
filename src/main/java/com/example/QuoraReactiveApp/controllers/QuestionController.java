@@ -23,19 +23,25 @@ public class QuestionController {
                 .doOnError(error -> System.out.println("Error creating question: " + error));
     }
 
-    @GetMapping
-    public Mono<QuestionResponseDTO> getQuestionById(@RequestParam Long questionId) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    @GetMapping("/{id}")
+    public Mono<QuestionResponseDTO> getQuestionById(@PathVariable String id) {
+        return this.questionService.getQuestionById(id)
+                .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error getting question: " + error));
     }
 
     @GetMapping
     public Flux<QuestionResponseDTO> getAllQuestions() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.questionService.getAllQuestions()
+                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error getting all questions: " + error));
     }
 
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteQuestionById(@PathVariable String questionId) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Mono<Void> deleteQuestionById(@PathVariable String id) {
+        return this.questionService.DeleteQuestionById(id)
+                .doOnSuccess(response -> System.out.println("Question deleted successfully: " + response))
+                .doOnError(error -> System.out.println("Error deleting question: " + error));
     }
 
     @GetMapping("/search")
