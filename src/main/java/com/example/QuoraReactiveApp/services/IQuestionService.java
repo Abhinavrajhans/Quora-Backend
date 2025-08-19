@@ -8,8 +8,10 @@ import reactor.core.publisher.Mono;
 
 public interface IQuestionService {
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO);
-    public Mono<QuestionResponseDTO> getQuestionById(@RequestParam String questionId);
+    public Mono<QuestionResponseDTO> getQuestionById(String questionId);
     public Flux<QuestionResponseDTO> getAllQuestions();
-    public Mono<Void> DeleteQuestionById(@RequestParam String questionId);
-    public Flux<QuestionResponseDTO> searchQuestions(@RequestParam String searchTerm, @RequestParam Integer offset, @RequestParam Integer pageSize);
+    public Mono<Void> DeleteQuestionById(String questionId);
+    public Flux<QuestionResponseDTO> searchQuestions(String searchTerm,Integer offset,Integer pageSize);
+    public Flux<QuestionResponseDTO> searchQuestionsByCursor(String cursor,int size);
+
 }

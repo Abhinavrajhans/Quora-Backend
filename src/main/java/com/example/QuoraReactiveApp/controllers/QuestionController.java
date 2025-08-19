@@ -54,6 +54,15 @@ public class QuestionController {
     }
 
 
+    @GetMapping("/cursor")
+    public Flux<QuestionResponseDTO> searchQuestionsByCursor(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue="10") int size
+    ) {
+        return this.questionService.searchQuestionsByCursor(cursor, size);
+    }
+
+
     @GetMapping("/tag/{tag}")
     public Flux<QuestionResponseDTO> getQuestionsByTag(@PathVariable String tag,
             @RequestParam(defaultValue = "0") int page,
