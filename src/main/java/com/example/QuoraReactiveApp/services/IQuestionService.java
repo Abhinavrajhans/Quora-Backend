@@ -11,4 +11,5 @@ public interface IQuestionService {
     public Mono<QuestionResponseDTO> getQuestionById(@RequestParam String questionId);
     public Flux<QuestionResponseDTO> getAllQuestions();
     public Mono<Void> DeleteQuestionById(@RequestParam String questionId);
+    public Flux<QuestionResponseDTO> searchQuestions(@RequestParam String searchTerm, @RequestParam Integer offset, @RequestParam Integer pageSize);
 }

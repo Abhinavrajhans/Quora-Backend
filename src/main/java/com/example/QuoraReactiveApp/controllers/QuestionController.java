@@ -47,10 +47,10 @@ public class QuestionController {
     @GetMapping("/search")
     public Flux<QuestionResponseDTO> searchQuestions(
             @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "100") int pageSize
     ){
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.questionService.searchQuestions(query, offset, pageSize);
     }
 
 
