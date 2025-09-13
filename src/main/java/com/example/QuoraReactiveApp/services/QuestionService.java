@@ -24,14 +24,8 @@ public class QuestionService implements IQuestionService {
 
     @Override
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
-        Question question = Question.builder()
-                .title(questionRequestDTO.getTitle())
-                .content(questionRequestDTO.getContent())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-       return questionRepository.save(question)
+        Question question = QuestionAdapter.toEntity(questionRequestDTO);
+        return questionRepository.save(question)
                 .map(QuestionAdapter::toDTO)
                 .doOnSuccess(response -> System.out.println("Question created successfully: "+ response))
                 .doOnError(error -> System.out.println("Error creating question: " + error));
@@ -54,7 +48,7 @@ public class QuestionService implements IQuestionService {
     }
 
     @Override
-    public Mono<Void> DeleteQuestionById(String questionId) {
+    public Mono<Void> deleteQuestionById(String questionId) {
        return this.questionRepository.deleteById(questionId)
         .doOnSuccess(response->System.out.println("The Question Got Deleted Successfully " + response))
         .doOnError(error-> System.out.println("Got Error while Deleting the Question "+error));

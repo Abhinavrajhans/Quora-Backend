@@ -3,7 +3,9 @@ package com.example.QuoraReactiveApp.controllers;
 
 import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
-import com.example.QuoraReactiveApp.services.QuestionService;
+
+import com.example.QuoraReactiveApp.services.IQuestionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -14,10 +16,10 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class QuestionController {
 
-    private final QuestionService questionService;
+    private final IQuestionService questionService;
 
     @PostMapping
-    public Mono<QuestionResponseDTO> createQuestion(@RequestBody QuestionRequestDTO questionRequestDTO) {
+    public Mono<QuestionResponseDTO> createQuestion(@Valid @RequestBody QuestionRequestDTO questionRequestDTO) {
         return questionService.createQuestion(questionRequestDTO)
                 .doOnSuccess(response -> System.out.println("Question created successfully: " + response))
                 .doOnError(error -> System.out.println("Error creating question: " + error));
@@ -39,7 +41,7 @@ public class QuestionController {
 
     @DeleteMapping("/{id}")
     public Mono<Void> deleteQuestionById(@PathVariable String id) {
-        return this.questionService.DeleteQuestionById(id)
+        return this.questionService.deleteQuestionById(id)
                 .doOnSuccess(response -> System.out.println("Question deleted successfully: " + response))
                 .doOnError(error -> System.out.println("Error deleting question: " + error));
     }
@@ -50,7 +52,10 @@ public class QuestionController {
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "100") int pageSize
     ){
-        return this.questionService.searchQuestions(query, offset, pageSize);
+        return this.questionService.searchQuestions(query, offset, pageSize)
+                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error getting all questions: " + error))
+                .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 
 
@@ -59,7 +64,9 @@ public class QuestionController {
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue="10") int size
     ) {
-        return this.questionService.searchQuestionsByCursor(cursor, size);
+        return this.questionService.searchQuestionsByCursor(cursor, size)
+                .doOnComplete(()-> System.out.println("Questions retrieved successfully: " + cursor))
+                .doOnError(error -> System.out.println("Error getting all questions: " + error));
     }
 
 

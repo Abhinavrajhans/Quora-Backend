@@ -9,7 +9,7 @@ public class CursorUtils {
             return false;
         }
         try{
-            LocalDateTime.parse(cursor); // if the string given to us is parsable in localddtetime then we can say yes it is a valid cursor.
+            LocalDateTime.parse(cursor); // if the string given to us is parsable in localdatetime then we can say yes it is a valid cursor.
             return true;
         }
         catch(Exception e){

@@ -4,21 +4,17 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-
 @Data
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class QuestionResponseDTO {
+public class AnswerResponseDTO {
 
     private String id;
-
-    private String title;
-
     private String content;
-
+    private String questionId;
     private LocalDateTime createdAt;
 
 }

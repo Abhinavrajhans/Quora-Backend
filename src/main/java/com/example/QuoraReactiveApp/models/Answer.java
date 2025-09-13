@@ -1,14 +1,13 @@
 package com.example.QuoraReactiveApp.models;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.time.LocalDateTime;
 
 
@@ -18,32 +17,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document(collection="questions") // this is same as @Entity in SQL but here we have mongoDB
-public class Question {
+@Document(collection="answers") // this is same as @Entity in SQL but here we have mongoDB
+public class Answer {
 
     @Id
     private String id;
 
-    @NotBlank(message="Title is required")
-    @Size(min=10,max=100,message = "Title must be between 10 and 100 characters")
-    private String title;
-
-    @NotBlank(message = "Content is required")
-    @Size(min=10,max=1000,message = "Content must be between 10 and 1000 characters")
+    @NotBlank(message = "Content is Required.")
+    @Size(min=10 , max=1000, message = "Content must be between 10 and 1000 characters.")
     private String content;
 
-    private Integer views;
-
-
+    //Now a Question can have multiple answer , but a answer belong to a question.
+    @Indexed
+    @NotBlank(message="Question Id is Required.")
+    private String questionId;
 
     @CreatedDate
+    @Indexed
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-
-    //we want to keep the user anyonmous so we are not keeping the authorId.
 }
-
-//Question has many tags and one tag has many questions
