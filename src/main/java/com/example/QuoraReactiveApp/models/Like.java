@@ -24,10 +24,10 @@ public class Like {
     @Id
     private String id;
 
-    @NotBlank(message = "The Target ID is Required.")
+    @NotBlank(message = "The targetId is Required.")
     private String targetId;
 
-    @NotNull(message = "The Like Type is Required.")
+    @NotNull(message = "The likeType is Required.")
     private LikeType likeType; // QUESTION , ANSWER
 
     @NotNull(message = "The isLike is Required.")
