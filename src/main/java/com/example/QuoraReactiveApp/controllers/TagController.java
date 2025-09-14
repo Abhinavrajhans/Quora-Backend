@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class TagController {
     
-    private ITagService tagservice;
+    private final ITagService tagservice;
     
     @PostMapping
     public Mono<TagResponseDTO> createTag(@Valid @RequestBody TagRequestDTO tagRequestDTO)

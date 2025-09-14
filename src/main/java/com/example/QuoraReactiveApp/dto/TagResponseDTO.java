@@ -17,5 +17,4 @@ public class TagResponseDTO {
     private String description;
     private Integer usageCount;
     private LocalDateTime createdAt;
-    private LocalDateTime updateAt;
 }
