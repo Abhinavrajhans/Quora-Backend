@@ -45,9 +45,17 @@ public class QuestionService implements IQuestionService {
 
     @Override
     public Mono<QuestionResponseDTO> getQuestionById(String questionId) {
-        Mono<Question> question=this.questionRepository.findById(questionId);
-        return question.map(QuestionAdapter::toDTO)
-                .doOnSuccess(response -> System.out.println("Question retrieved successfully: "+ response))
+        return questionRepository.findById(questionId)
+                .flatMap(question -> {
+                    if (question.getTagIds() == null || question.getTagIds().isEmpty()) {
+                        return Mono.just(QuestionAdapter.toDTO(question));
+                    }
+                    return Flux.fromIterable(question.getTagIds())
+                            .flatMap(tagService::getTagById)
+                            .collectList()
+                            .map(tags -> QuestionAdapter.toDTOWithTags(question, tags));
+                })
+                .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
                 .doOnError(error -> System.out.println("Error getting question: " + error));
     }
 

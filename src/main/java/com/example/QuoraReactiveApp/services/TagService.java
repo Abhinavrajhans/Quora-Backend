@@ -3,10 +3,12 @@ package com.example.QuoraReactiveApp.services;
 import com.example.QuoraReactiveApp.adapter.TagAdapter;
 import com.example.QuoraReactiveApp.dto.TagRequestDTO;
 import com.example.QuoraReactiveApp.dto.TagResponseDTO;
-import com.example.QuoraReactiveApp.models.Tag;
 import com.example.QuoraReactiveApp.repositories.TagRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -61,6 +63,7 @@ public class TagService implements ITagService {
                 .map(TagAdapter::toDTO);
     }
 
+    @Override
     public Mono<TagResponseDTO> decrementUsageCount(String tagId){
         return tagRepository.findById(tagId)
                 .flatMap(tag->{
@@ -68,5 +71,17 @@ public class TagService implements ITagService {
                     return tagRepository.save(tag);
                 })
                 .map(TagAdapter::toDTO);
+    }
+
+
+
+    @Override
+    public Flux<TagResponseDTO> findAllTags(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return tagRepository.findAllBy(pageable)
+                .map(TagAdapter::toDTO)
+                .doOnNext(response -> System.out.println("Fetched the Tags Successfully: " + response))
+                .doOnError(error -> System.out.println("Error getting Tags: " + error))
+                .doOnComplete(() -> System.out.println("Fetched All the tags Successfully"));
     }
 }
