@@ -21,15 +21,26 @@ import java.time.LocalDateTime;
 public class QuestionService implements IQuestionService {
 
     private final QuestionRepository questionRepository;
+    private final TagService tagService;
+
 
     @Override
-    public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
+    public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO)
+    {
         Question question = QuestionAdapter.toEntity(questionRequestDTO);
         return questionRepository.save(question)
+                .flatMap(savedQuestion->{
+                    //Increment usage count for all the tags
+                    if(savedQuestion.getTagIds()!=null && !savedQuestion.getTagIds().isEmpty()){
+                        return Flux.fromIterable(savedQuestion.getTagIds())
+                                .flatMap(tagService::incrementUsageCount)
+                                .then(Mono.just(savedQuestion));
+                    }
+                    return Mono.just(savedQuestion);
+                })
                 .map(QuestionAdapter::toDTO)
-                .doOnSuccess(response -> System.out.println("Question created successfully: "+ response))
-                .doOnError(error -> System.out.println("Error creating question: " + error));
-
+                .doOnNext(response -> System.out.println("Question created Successfully" + response))
+                .doOnError(throwable -> System.out.println("Question created Failed" + throwable));
     }
 
     @Override
@@ -47,12 +58,24 @@ public class QuestionService implements IQuestionService {
                 .doOnError(error -> System.out.println("Error getting all questions: " + error));
     }
 
+
     @Override
     public Mono<Void> deleteQuestionById(String questionId) {
-       return this.questionRepository.deleteById(questionId)
-        .doOnSuccess(response->System.out.println("The Question Got Deleted Successfully " + response))
-        .doOnError(error-> System.out.println("Got Error while Deleting the Question "+error));
+        return this.questionRepository.findById(questionId)
+                .flatMap(foundQuestion -> {
+                    if (foundQuestion.getTagIds() != null && !foundQuestion.getTagIds().isEmpty()) {
+                        return Flux.fromIterable(foundQuestion.getTagIds())
+                                .flatMap(tagService::decrementUsageCount)
+                                .then(this.questionRepository.deleteById(questionId));
+                    }
+                    return this.questionRepository.deleteById(questionId);
+                })
+                .doOnSuccess(ignored ->
+                        System.out.println("✅ The Question with ID " + questionId + " got deleted successfully"))
+                .doOnError(error ->
+                        System.err.println("❌ Error while deleting question " + questionId + ": " + error.getMessage()));
     }
+
 
     @Override
     public Flux<QuestionResponseDTO> searchQuestions(String searchTerm, Integer offset, Integer pageSize) {
@@ -89,6 +112,11 @@ public class QuestionService implements IQuestionService {
                     .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
         }
 
+    }
+
+    @Override
+    public Flux<QuestionResponseDTO> getQuestionsByTags(String tags,int page,int size){
+        return null;
     }
 
 

@@ -16,13 +16,19 @@ public class TagService implements ITagService {
     private final TagRepository tagRepository;
 
     @Override
-    public Mono<TagResponseDTO> createTag(TagRequestDTO tagRequestDTO)
-    {
-        Tag tag = TagAdapter.toEntity(tagRequestDTO);
-        return tagRepository.save(tag)
-                .map(TagAdapter::toDTO)
-                .doOnSuccess(response-> System.out.println(" Successfully created Tag: "+ response))
-                .doOnError(error-> System.out.println(" Error creating Tag: "+ error));
+    public Mono<TagResponseDTO> createTag(TagRequestDTO tagRequestDTO) {
+        return tagRepository.findByName(tagRequestDTO.getName())
+                .flatMap(existingTag ->
+                        Mono.<TagResponseDTO>error(new RuntimeException(
+                                "Tag with name " + tagRequestDTO.getName() + " already exists"))
+                )
+                .switchIfEmpty(
+                    tagRepository
+                    .save(TagAdapter.toEntity(tagRequestDTO))
+                    .map(TagAdapter::toDTO)
+                )
+                .doOnSuccess(response -> System.out.println("Successfully created Tag: " + response))
+                .doOnError(error -> System.out.println("Error creating Tag: " + error));
     }
 
     @Override
@@ -32,5 +38,35 @@ public class TagService implements ITagService {
                 .map(TagAdapter::toDTO)
                 .doOnSuccess(response-> System.out.println(" Successfully retrieved Tag: "+ response))
                 .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+    }
+
+
+    @Override
+    public Mono<TagResponseDTO> findTagByName(String name)
+    {
+        return tagRepository.findByName(name)
+                .map(TagAdapter::toDTO)
+                .doOnSuccess(response-> System.out.println(" Successfully retrieved Tag: "+ response))
+                .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+    }
+
+
+    @Override
+    public Mono<TagResponseDTO> incrementUsageCount(String tagId) {
+        return tagRepository.findById(tagId)
+                .flatMap(tag -> {
+                    tag.setUsageCount(tag.getUsageCount() + 1);
+                    return tagRepository.save(tag);
+                })
+                .map(TagAdapter::toDTO);
+    }
+
+    public Mono<TagResponseDTO> decrementUsageCount(String tagId){
+        return tagRepository.findById(tagId)
+                .flatMap(tag->{
+                    tag.setUsageCount(Math.max(tag.getUsageCount() - 1,0));
+                    return tagRepository.save(tag);
+                })
+                .map(TagAdapter::toDTO);
     }
 }

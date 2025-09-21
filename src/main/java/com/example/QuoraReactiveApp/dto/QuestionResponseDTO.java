@@ -3,6 +3,7 @@ package com.example.QuoraReactiveApp.dto;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Data
@@ -14,11 +15,10 @@ import java.time.LocalDateTime;
 public class QuestionResponseDTO {
 
     private String id;
-
     private String title;
-
     private String content;
-
+    private List<String> tagIds;
+    private List<TagResponseDTO> tags; //Poplutatted tags for convenience
     private LocalDateTime createdAt;
 
 }

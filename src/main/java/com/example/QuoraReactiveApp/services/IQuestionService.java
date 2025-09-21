@@ -12,6 +12,6 @@ public interface IQuestionService {
     public Mono<Void> deleteQuestionById(String questionId);
     public Flux<QuestionResponseDTO> searchQuestions(String searchTerm,Integer offset,Integer pageSize);
     public Flux<QuestionResponseDTO> searchQuestionsByCursor(String cursor,int size);
-
+    public Flux<QuestionResponseDTO> getQuestionsByTags(String tags,int page,int size);
 
 }

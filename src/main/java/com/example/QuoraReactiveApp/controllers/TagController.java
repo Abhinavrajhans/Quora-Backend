@@ -34,4 +34,14 @@ public class TagController {
     }
 
 
+
+    @GetMapping("/name/{name}")
+    public Mono<TagResponseDTO> findTagByName(@PathVariable String name)
+    {
+        return  tagservice.findTagByName(name)
+                .doOnSuccess(response-> System.out.println(" Successfully Tag Created : "+ response))
+                .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+    }
+
+
 }
