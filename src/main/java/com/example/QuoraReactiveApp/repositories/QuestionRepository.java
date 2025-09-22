@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Repository
@@ -20,5 +21,19 @@ public interface QuestionRepository extends ReactiveMongoRepository<Question,Str
     Flux<Question> findByCreatedAtGreaterThanOrderByCreatedAtAsc(LocalDateTime cursor, Pageable pageable);
 
     Flux<Question> findTop10ByOrderByCreatedAtAsc(Pageable pageable); // just return the top 10 records
+
+    //Find Questions by single tag ID
+    @Query("{ 'tagIds' :  ?0}")
+    Flux<Question> findByTagId(String tagId,Pageable pageable);
+
+    //Find questions by multiple tag IDs (questions that have ANY of these tags)
+    @Query("{ 'tagIds' : { $in :  ?0 } }")
+    Flux<Question> findByTagIdIn(List<String> tagIds, Pageable pageable);
+
+    // Find questions by muliple tag IDs (questions that have ALL of these tags)
+    @Query("{ 'tagIds' :  {$all: ?0 }}")
+    Flux<Question> findByTagIdAll(List<String> tagIds , Pageable pageable);
+
+
 
 }

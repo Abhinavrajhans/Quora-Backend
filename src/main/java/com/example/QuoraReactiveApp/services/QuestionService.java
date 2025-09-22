@@ -4,6 +4,7 @@ import com.example.QuoraReactiveApp.adapter.QuestionAdapter;
 import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 import com.example.QuoraReactiveApp.models.Question;
+import com.example.QuoraReactiveApp.models.TagFilterType;
 import com.example.QuoraReactiveApp.repositories.QuestionRepository;
 import com.example.QuoraReactiveApp.utils.CursorUtils;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +40,7 @@ public class QuestionService implements IQuestionService {
                     }
                     return Mono.just(savedQuestion);
                 })
-                .map(QuestionAdapter::toDTO)
+                .flatMap(this::enrichQuestionWithTags)
                 .doOnNext(response -> System.out.println("Question created Successfully" + response))
                 .doOnError(throwable -> System.out.println("Question created Failed" + throwable));
     }
@@ -46,15 +48,7 @@ public class QuestionService implements IQuestionService {
     @Override
     public Mono<QuestionResponseDTO> getQuestionById(String questionId) {
         return questionRepository.findById(questionId)
-                .flatMap(question -> {
-                    if (question.getTagIds() == null || question.getTagIds().isEmpty()) {
-                        return Mono.just(QuestionAdapter.toDTO(question));
-                    }
-                    return Flux.fromIterable(question.getTagIds())
-                            .flatMap(tagService::getTagById)
-                            .collectList()
-                            .map(tags -> QuestionAdapter.toDTOWithTags(question, tags));
-                })
+                .flatMap(this::enrichQuestionWithTags)
                 .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
                 .doOnError(error -> System.out.println("Error getting question: " + error));
     }
@@ -123,8 +117,49 @@ public class QuestionService implements IQuestionService {
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getQuestionsByTags(String tags,int page,int size){
-        return null;
+    public Flux<QuestionResponseDTO> getQuestionsByTags(List<String> tagIds, TagFilterType filterType, int page, int size) {
+        if(tagIds == null || tagIds.isEmpty())return Flux.empty();
+        Pageable pageable = PageRequest.of(page,size);
+
+        //choose the appropriate repository method based on filter type
+        Flux<Question> questionsFlux=switch(filterType){
+            case SINGLE->  questionRepository.findByTagId(tagIds.getFirst(),pageable);
+            case ANY -> questionRepository.findByTagIdIn(tagIds,pageable);
+            case ALL -> questionRepository.findByTagIdAll(tagIds,pageable);
+        };
+
+        return questionsFlux
+                .flatMap(this::enrichQuestionWithTags)
+                .doOnNext(response -> System.out.println("Question by tags retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error getting questions by tags: " + error))
+                .doOnComplete(() -> System.out.println("All questions by tags retrieved successfully"));
+
+    }
+
+    private Mono<QuestionResponseDTO> enrichQuestionWithTags(Question question){
+        if(question.getTagIds() == null || question.getTagIds().isEmpty()){
+            return Mono.just(QuestionAdapter.toDTO(question));
+        }
+
+        return Flux.fromIterable(question.getTagIds())
+                .flatMap(tagService::getTagById)
+                .collectList()
+                .map(tagList -> QuestionAdapter.toDTOWithTags(question,tagList));
+    }
+
+    @Override
+    public Flux<QuestionResponseDTO> getQuestionsByTagId(String tagId,int page,int size){
+       return getQuestionsByTags(List.of(tagId),TagFilterType.SINGLE,page,size);
+    }
+
+    @Override
+    public Flux<QuestionResponseDTO> getQuestionsByAnyTags(List<String> tags, int page, int size) {
+        return getQuestionsByTags(tags, TagFilterType.ANY, page, size);
+    }
+
+    @Override
+    public Flux<QuestionResponseDTO> getQuestionsByAllTags(List<String> tagIds, int page, int size) {
+        return getQuestionsByTags(tagIds, TagFilterType.ALL, page, size);
     }
 
 

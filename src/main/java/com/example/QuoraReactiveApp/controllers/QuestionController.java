@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/questions")
 @RequiredArgsConstructor
@@ -70,11 +72,40 @@ public class QuestionController {
     }
 
 
-    @GetMapping("/tag/{tag}")
-    public Flux<QuestionResponseDTO> getQuestionsByTag(@PathVariable String tag,
+    @GetMapping("/tag/{tagId}")
+    public Flux<QuestionResponseDTO> getQuestionsByTagId(@PathVariable String tagId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size
     ){
-        throw new UnsupportedOperationException("Not supported yet.");
+      return questionService.getQuestionsByTagId(tagId, page, size)
+              .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+              .doOnError(error -> System.out.println("Error getting all questions: " + error))
+              .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
+    }
+
+
+    @GetMapping("/tags/any")
+    public Flux<QuestionResponseDTO> getQuestionByAnyTags(
+            @RequestParam List<String> tagIds,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        return questionService.getQuestionsByAnyTags(tagIds, page, size)
+                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error getting all questions: " + error))
+                .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
+    }
+
+    // Multiple tags with ALL logic (AND)
+    @GetMapping("/tags/all")
+    public Flux<QuestionResponseDTO> getQuestionsByAllTags(
+            @RequestParam List<String> tagIds,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return questionService.getQuestionsByAllTags(tagIds, page, size)
+                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error getting all questions: " + error))
+                .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 }
