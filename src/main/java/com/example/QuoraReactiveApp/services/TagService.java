@@ -38,6 +38,7 @@ public class TagService implements ITagService {
     {
         return tagRepository.findById(id)
                 .map(TagAdapter::toDTO)
+                .switchIfEmpty(Mono.error(new RuntimeException("Tag with Id "+id +" not found")))
                 .doOnSuccess(response-> System.out.println(" Successfully retrieved Tag: "+ response))
                 .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
     }
@@ -48,6 +49,7 @@ public class TagService implements ITagService {
     {
         return tagRepository.findByName(name)
                 .map(TagAdapter::toDTO)
+                .switchIfEmpty(Mono.error(new RuntimeException("Tag with name "+name+" not found")))
                 .doOnSuccess(response-> System.out.println(" Successfully retrieved Tag: "+ response))
                 .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
     }
