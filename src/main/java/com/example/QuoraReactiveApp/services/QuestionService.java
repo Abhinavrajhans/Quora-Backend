@@ -153,8 +153,8 @@ public class QuestionService implements IQuestionService {
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getQuestionsByAnyTags(List<String> tags, int page, int size) {
-        return getQuestionsByTags(tags, TagFilterType.ANY, page, size);
+    public Flux<QuestionResponseDTO> getQuestionsByAnyTags(List<String> tagIds, int page, int size) {
+        return getQuestionsByTags(tagIds, TagFilterType.ANY, page, size);
     }
 
     @Override

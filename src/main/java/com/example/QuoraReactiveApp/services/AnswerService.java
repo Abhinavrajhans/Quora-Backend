@@ -29,7 +29,9 @@ public class AnswerService implements IAnswerService{
 
     @Override
     public Mono<AnswerResponseDTO> getAnswerById(String id){
-        return answerRepository.findById(id).map(AnswerAdapter::toDTO)
+        return answerRepository.findById(id)
+                .map(AnswerAdapter::toDTO)
+                .switchIfEmpty(Mono.error(new RuntimeException("Answer with Id "+id +" not found")))
                 .doOnSuccess(response -> System.out.println("Answer found successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer found failed: " + error));
     }
@@ -38,6 +40,7 @@ public class AnswerService implements IAnswerService{
     public Flux<AnswerResponseDTO> getAllAnswersByQuestionId(String questionId) {
         return answerRepository.findByQuestionId(questionId)
                 .map(AnswerAdapter::toDTO)
+                .switchIfEmpty(Flux.error(new RuntimeException("No answers found for question ID: " + questionId)))
                 .doOnNext(response -> System.out.println("Answer found successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer found failed: " + error))
                 .doOnComplete(() -> System.out.println("All answers found successfully"));

@@ -16,8 +16,8 @@ public interface IQuestionService {
     public Flux<QuestionResponseDTO> searchQuestions(String searchTerm,Integer offset,Integer pageSize);
     public Flux<QuestionResponseDTO> searchQuestionsByCursor(String cursor,int size);
     public Flux<QuestionResponseDTO> getQuestionsByTags(List<String> tagIds, TagFilterType tagFilter, int page , int size);
-    public Flux<QuestionResponseDTO> getQuestionsByTagId(String tags,int page,int size);
-    public Flux<QuestionResponseDTO> getQuestionsByAnyTags(List<String> tags, int page, int size);
+    public Flux<QuestionResponseDTO> getQuestionsByTagId(String tagId,int page,int size);
+    public Flux<QuestionResponseDTO> getQuestionsByAnyTags(List<String> tagIds, int page, int size);
     public Flux<QuestionResponseDTO> getQuestionsByAllTags(List<String> tagIds,int page,int size);
 
 }
