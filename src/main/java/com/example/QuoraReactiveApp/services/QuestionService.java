@@ -3,8 +3,10 @@ package com.example.QuoraReactiveApp.services;
 import com.example.QuoraReactiveApp.adapter.QuestionAdapter;
 import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
+import com.example.QuoraReactiveApp.events.ViewCountEvent;
 import com.example.QuoraReactiveApp.models.Question;
 import com.example.QuoraReactiveApp.models.TagFilterType;
+import com.example.QuoraReactiveApp.producers.KafkaEventProducer;
 import com.example.QuoraReactiveApp.repositories.QuestionRepository;
 import com.example.QuoraReactiveApp.utils.CursorUtils;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class QuestionService implements IQuestionService {
 
     private final QuestionRepository questionRepository;
     private final TagService tagService;
+    private final KafkaEventProducer kafkaEventProducer;
 
 
     @Override
@@ -49,7 +52,12 @@ public class QuestionService implements IQuestionService {
     public Mono<QuestionResponseDTO> getQuestionById(String questionId) {
         return questionRepository.findById(questionId)
                 .flatMap(this::enrichQuestionWithTags)
-                .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
+                .doOnSuccess(response -> {
+                            System.out.println("Question retrieved successfully: " + response);
+                            ViewCountEvent viewCountEvent = new ViewCountEvent(questionId,"question",LocalDateTime.now());
+                            kafkaEventProducer.publishViewCountEvent(viewCountEvent);
+                        }
+                )
                 .doOnError(error -> System.out.println("Error getting question: " + error));
     }
 
