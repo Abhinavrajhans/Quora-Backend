@@ -28,7 +28,8 @@ public class KafkaEventConsumer {
         questionRepository.findById(event.getTargetId())
                 .flatMap(question-> {
                     System.out.println("Incrementing view count for question:  " + question.getId());
-                    question.setViews(question.getViews() + 1);
+                    Integer view=question.getViews() ;
+                    question.setViews( view == null ? 0 : view + 1);
                     return questionRepository.save(question);
                 })
                 .subscribe(updatedQuestion ->{
