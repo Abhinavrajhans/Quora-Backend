@@ -5,7 +5,6 @@ import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 import com.example.QuoraReactiveApp.dto.TagResponseDTO;
 import com.example.QuoraReactiveApp.models.Question;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class QuestionAdapter {
@@ -37,8 +36,6 @@ public class QuestionAdapter {
                 .title(questionRequestDTO.getTitle())
                 .content(questionRequestDTO.getContent())
                 .tagIds(questionRequestDTO.getTagIds())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
     }
 }

@@ -1,6 +1,6 @@
 package com.example.QuoraReactiveApp.dto;
 
-import com.example.QuoraReactiveApp.models.LikeType;
+import com.example.QuoraReactiveApp.models.Type.LikeType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

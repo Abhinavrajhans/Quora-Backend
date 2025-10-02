@@ -28,7 +28,7 @@ public class LikeController {
     public Mono<LikeResponseDTO> getLikeById(@PathVariable  String id)
     {
         return likeService.getLikeById(id)
-                .doOnSuccess(response -> System.out.println("Like is Created Successfully: "+ response))
-                .doOnError(error -> System.out.println("Like creation Failed: "+ error));
+                .doOnSuccess(response -> System.out.println("Like of id : "+ id +" is retrieved successfully"))
+                .doOnError(error -> System.out.println("Like of id : "+ id +" retrival failed"));
     }
 }

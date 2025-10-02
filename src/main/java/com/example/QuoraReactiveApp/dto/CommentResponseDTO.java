@@ -1,23 +1,21 @@
 package com.example.QuoraReactiveApp.dto;
 
-
-import com.example.QuoraReactiveApp.models.Type.LikeType;
+import com.example.QuoraReactiveApp.models.Type.CommentType;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class LikeResponseDTO {
+public class CommentResponseDTO {
 
     private String id;
+    private String text;
     private String targetId;
-    private LikeType likeType;
-    private Boolean isLike;
-    private LocalDateTime createdDate;
-
+    private CommentType targetType;
+    private LocalDateTime createdAt;
 }

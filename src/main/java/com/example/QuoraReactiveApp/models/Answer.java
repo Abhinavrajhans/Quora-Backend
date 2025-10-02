@@ -32,6 +32,8 @@ public class Answer {
     @NotBlank(message="Question Id is Required.")
     private String questionId;
 
+    @Builder.Default
+    private Integer views=0;
 
     @CreatedDate
     @Indexed

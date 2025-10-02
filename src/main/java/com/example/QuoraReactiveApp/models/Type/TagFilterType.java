@@ -1,4 +1,4 @@
-package com.example.QuoraReactiveApp.models;
+package com.example.QuoraReactiveApp.models.Type;
 
 public enum TagFilterType {
     SINGLE,

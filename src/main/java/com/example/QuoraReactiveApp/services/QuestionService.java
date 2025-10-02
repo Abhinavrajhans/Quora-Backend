@@ -6,7 +6,7 @@ import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 import com.example.QuoraReactiveApp.events.ViewCountEvent;
 import com.example.QuoraReactiveApp.models.Question;
 import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
-import com.example.QuoraReactiveApp.models.TagFilterType;
+import com.example.QuoraReactiveApp.models.Type.TagFilterType;
 import com.example.QuoraReactiveApp.producers.KafkaEventProducer;
 import com.example.QuoraReactiveApp.repositories.QuestionDocumentRepository;
 import com.example.QuoraReactiveApp.repositories.QuestionRepository;

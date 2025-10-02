@@ -4,7 +4,6 @@ import com.example.QuoraReactiveApp.dto.TagRequestDTO;
 import com.example.QuoraReactiveApp.dto.TagResponseDTO;
 import com.example.QuoraReactiveApp.models.Tag;
 
-import java.time.LocalDateTime;
 
 public class TagAdapter {
 
@@ -25,8 +24,6 @@ public class TagAdapter {
                 .name(tagRequestDTO.getName())
                 .description(tagRequestDTO.getDescription())
                 .usageCount(0)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
     }

@@ -3,7 +3,7 @@ package com.example.QuoraReactiveApp.services;
 import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
-import com.example.QuoraReactiveApp.models.TagFilterType;
+import com.example.QuoraReactiveApp.models.Type.TagFilterType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

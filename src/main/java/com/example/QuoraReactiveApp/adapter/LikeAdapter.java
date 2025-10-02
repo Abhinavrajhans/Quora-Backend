@@ -4,8 +4,6 @@ import com.example.QuoraReactiveApp.dto.LikeRequestDTO;
 import com.example.QuoraReactiveApp.dto.LikeResponseDTO;
 import com.example.QuoraReactiveApp.models.Like;
 
-import java.time.LocalDateTime;
-
 public class LikeAdapter {
 
     public static LikeResponseDTO toDTO(Like like)
@@ -24,8 +22,6 @@ public class LikeAdapter {
                 .targetId(dto.getTargetId())
                 .likeType(dto.getLikeType())
                 .isLike(dto.getIsLike())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
     }
 }
