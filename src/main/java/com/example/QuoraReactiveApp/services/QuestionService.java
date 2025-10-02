@@ -5,8 +5,10 @@ import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 import com.example.QuoraReactiveApp.events.ViewCountEvent;
 import com.example.QuoraReactiveApp.models.Question;
+import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
 import com.example.QuoraReactiveApp.models.TagFilterType;
 import com.example.QuoraReactiveApp.producers.KafkaEventProducer;
+import com.example.QuoraReactiveApp.repositories.QuestionDocumentRepository;
 import com.example.QuoraReactiveApp.repositories.QuestionRepository;
 import com.example.QuoraReactiveApp.utils.CursorUtils;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,8 @@ public class QuestionService implements IQuestionService {
     private final QuestionRepository questionRepository;
     private final TagService tagService;
     private final KafkaEventProducer kafkaEventProducer;
+    private final IQuestionIndexService iQuestionIndexService;
+    private final QuestionDocumentRepository questionDocumentRepository;
 
 
     @Override
@@ -35,6 +39,7 @@ public class QuestionService implements IQuestionService {
         Question question = QuestionAdapter.toEntity(questionRequestDTO);
         return questionRepository.save(question)
                 .flatMap(savedQuestion->{
+                    iQuestionIndexService.createQuestionIndex(question); // dumping the question to elastic search
                     //Increment usage count for all the tags
                     if(savedQuestion.getTagIds()!=null && !savedQuestion.getTagIds().isEmpty()){
                         return Flux.fromIterable(savedQuestion.getTagIds())
@@ -168,6 +173,11 @@ public class QuestionService implements IQuestionService {
     @Override
     public Flux<QuestionResponseDTO> getQuestionsByAllTags(List<String> tagIds, int page, int size) {
         return getQuestionsByTags(tagIds, TagFilterType.ALL, page, size);
+    }
+
+    @Override
+    public List<QuestionElasticDocument> searchQuestionsByElasticSearch(String query){
+        return questionDocumentRepository.findByTitleContainingOrContentContaining(query,query);
     }
 
 

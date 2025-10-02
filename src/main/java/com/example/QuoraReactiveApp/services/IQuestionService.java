@@ -2,6 +2,7 @@ package com.example.QuoraReactiveApp.services;
 
 import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
+import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
 import com.example.QuoraReactiveApp.models.TagFilterType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,5 +20,6 @@ public interface IQuestionService {
     public Flux<QuestionResponseDTO> getQuestionsByTagId(String tagId,int page,int size);
     public Flux<QuestionResponseDTO> getQuestionsByAnyTags(List<String> tagIds, int page, int size);
     public Flux<QuestionResponseDTO> getQuestionsByAllTags(List<String> tagIds,int page,int size);
+    public List<QuestionElasticDocument> searchQuestionsByElasticSearch(String query);
 
 }

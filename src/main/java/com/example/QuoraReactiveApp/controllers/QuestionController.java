@@ -4,6 +4,7 @@ package com.example.QuoraReactiveApp.controllers;
 import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 
+import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
 import com.example.QuoraReactiveApp.services.IQuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -107,5 +108,12 @@ public class QuestionController {
                 .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
                 .doOnError(error -> System.out.println("Error getting all questions: " + error))
                 .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
+    }
+
+    @GetMapping("/elasticsearch")
+    public List<QuestionElasticDocument> searchQuestionByElasticSearch(
+            @RequestParam String query
+    ){
+        return questionService.searchQuestionsByElasticSearch(query);
     }
 }
