@@ -7,6 +7,6 @@ import reactor.core.publisher.Mono;
 
 public interface IAnswerService {
     public Mono<AnswerResponseDTO> createAnswer(AnswerRequestDTO answer);
-    public Mono<AnswerResponseDTO> getAnswerById(String id);
-    Flux<AnswerResponseDTO> getAllAnswersByQuestionId(String questionId);
+    public Mono<AnswerResponseDTO> findAnswerById(String id);
+    Flux<AnswerResponseDTO> findAllAnswersByQuestionId(String questionId);
 }

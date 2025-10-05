@@ -29,7 +29,7 @@ public class CommentService implements ICommentService{
     }
 
     @Override
-    public Mono<CommentResponseDTO> getCommentById(String id)
+    public Mono<CommentResponseDTO> findCommentById(String id)
     {
         return commentRepository.findById(id)
                 .map(CommentAdapter::toDTO)
@@ -38,10 +38,10 @@ public class CommentService implements ICommentService{
     }
 
     @Override
-    public Flux<CommentResponseDTO> getAllComments(int page,int size)
+    public Flux<CommentResponseDTO> findAllComments(int page,int size)
     {
             Pageable pageable = PageRequest.of(page,size);
-            return commentRepository.getAllBy(pageable)
+            return commentRepository.findAllBy(pageable)
                     .map(CommentAdapter::toDTO)
                     .doOnNext(response -> System.out.println("Comment found successfully: "+ response))
                     .doOnError(error -> System.out.println("Comment found failed: " + error))

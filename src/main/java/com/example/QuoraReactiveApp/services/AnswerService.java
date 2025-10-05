@@ -28,7 +28,7 @@ public class AnswerService implements IAnswerService{
 
 
     @Override
-    public Mono<AnswerResponseDTO> getAnswerById(String id){
+    public Mono<AnswerResponseDTO> findAnswerById(String id){
         return answerRepository.findById(id)
                 .map(AnswerAdapter::toDTO)
                 .switchIfEmpty(Mono.error(new RuntimeException("Answer with Id "+id +" not found")))
@@ -37,7 +37,7 @@ public class AnswerService implements IAnswerService{
     }
 
     @Override
-    public Flux<AnswerResponseDTO> getAllAnswersByQuestionId(String questionId) {
+    public Flux<AnswerResponseDTO> findAllAnswersByQuestionId(String questionId) {
         return answerRepository.findByQuestionId(questionId)
                 .map(AnswerAdapter::toDTO)
                 .switchIfEmpty(Flux.error(new RuntimeException("No answers found for question ID: " + questionId)))

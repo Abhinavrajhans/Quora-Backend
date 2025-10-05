@@ -27,17 +27,17 @@ public class AnswerController {
 
 
     @GetMapping("/{id}")
-    public Mono<AnswerResponseDTO> getAnswerById(@PathVariable  String id)
+    public Mono<AnswerResponseDTO> findAnswerById(@PathVariable  String id)
     {
-        return answerService.getAnswerById(id)
+        return answerService.findAnswerById(id)
                 .doOnSuccess(response -> System.out.println("Answer found successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer found failed: " + error));
     }
 
     @GetMapping("/question/{id}")
-    public Flux<AnswerResponseDTO> getAnswerByQuestionId(@PathVariable String id)
+    public Flux<AnswerResponseDTO> findAnswerByQuestionId(@PathVariable String id)
     {
-        return answerService.getAllAnswersByQuestionId(id)
+        return answerService.findAllAnswersByQuestionId(id)
                 .doOnNext(response -> System.out.println("Answer found successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer found failed: " + error))
                 .doOnComplete(() -> System.out.println("All answers found successfully"));

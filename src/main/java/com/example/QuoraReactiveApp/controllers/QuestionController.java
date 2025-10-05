@@ -29,17 +29,17 @@ public class QuestionController {
     }
 
     @GetMapping("/{id}")
-    public Mono<QuestionResponseDTO> getQuestionById(@PathVariable String id) {
-        return this.questionService.getQuestionById(id)
+    public Mono<QuestionResponseDTO> findQuestionById(@PathVariable String id) {
+        return this.questionService.findQuestionById(id)
                 .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
-                .doOnError(error -> System.out.println("Error getting question: " + error));
+                .doOnError(error -> System.out.println("Error Finding question: " + error));
     }
 
     @GetMapping
-    public Flux<QuestionResponseDTO> getAllQuestions() {
-        return this.questionService.getAllQuestions()
+    public Flux<QuestionResponseDTO> findAllQuestions() {
+        return this.questionService.findAllQuestions()
                 .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
-                .doOnError(error -> System.out.println("Error getting all questions: " + error));
+                .doOnError(error -> System.out.println("Error finding all questions: " + error));
     }
 
     @DeleteMapping("/{id}")
@@ -57,7 +57,7 @@ public class QuestionController {
     ){
         return this.questionService.searchQuestions(query, offset, pageSize)
                 .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
-                .doOnError(error -> System.out.println("Error getting all questions: " + error))
+                .doOnError(error -> System.out.println("Error finding all questions: " + error))
                 .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 
@@ -69,51 +69,55 @@ public class QuestionController {
     ) {
         return this.questionService.searchQuestionsByCursor(cursor, size)
                 .doOnComplete(()-> System.out.println("Questions retrieved successfully: " + cursor))
-                .doOnError(error -> System.out.println("Error getting all questions: " + error));
+                .doOnError(error -> System.out.println("Error finding all questions: " + error));
     }
 
 
     @GetMapping("/tag/{tagId}")
-    public Flux<QuestionResponseDTO> getQuestionsByTagId(@PathVariable String tagId,
+    public Flux<QuestionResponseDTO> findQuestionsByTagId(@PathVariable String tagId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size
     ){
-      return questionService.getQuestionsByTagId(tagId, page, size)
+      return questionService.findQuestionsByTagId(tagId, page, size)
               .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
-              .doOnError(error -> System.out.println("Error getting all questions: " + error))
+              .doOnError(error -> System.out.println("Error finding all questions: " + error))
               .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 
 
     @GetMapping("/tags/any")
-    public Flux<QuestionResponseDTO> getQuestionByAnyTags(
+    public Flux<QuestionResponseDTO> findingQuestionByAnyTags(
             @RequestParam List<String> tagIds,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
-        return questionService.getQuestionsByAnyTags(tagIds, page, size)
+        return questionService.findQuestionsByAnyTags(tagIds, page, size)
                 .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
-                .doOnError(error -> System.out.println("Error getting all questions: " + error))
+                .doOnError(error -> System.out.println("Error finding all questions: " + error))
                 .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 
     // Multiple tags with ALL logic (AND)
     @GetMapping("/tags/all")
-    public Flux<QuestionResponseDTO> getQuestionsByAllTags(
+    public Flux<QuestionResponseDTO> findQuestionsByAllTags(
             @RequestParam List<String> tagIds,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return questionService.getQuestionsByAllTags(tagIds, page, size)
+        return questionService.findQuestionsByAllTags(tagIds, page, size)
                 .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
-                .doOnError(error -> System.out.println("Error getting all questions: " + error))
+                .doOnError(error -> System.out.println("Error finding all questions: " + error))
                 .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 
     @GetMapping("/elasticsearch")
-    public List<QuestionElasticDocument> searchQuestionByElasticSearch(
+    public Flux<QuestionElasticDocument> searchQuestionByElasticSearch(
             @RequestParam String query
     ){
-        return questionService.searchQuestionsByElasticSearch(query);
+        return questionService.searchQuestionsByElasticSearch(query)
+                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error finding all questions: " + error))
+                .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 }
+s

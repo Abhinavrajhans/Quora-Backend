@@ -19,7 +19,7 @@ public class TagService implements ITagService {
 
     @Override
     public Mono<TagResponseDTO> createTag(TagRequestDTO tagRequestDTO) {
-        return tagRepository.findByName(tagRequestDTO.getName())
+        return tagRepository.findByNameIgnoreCase(tagRequestDTO.getName())
                 .flatMap(existingTag ->
                         Mono.<TagResponseDTO>error(new RuntimeException(
                                 "Tag with name " + tagRequestDTO.getName() + " already exists"))
@@ -34,24 +34,25 @@ public class TagService implements ITagService {
     }
 
     @Override
-    public Mono<TagResponseDTO> getTagById(String id)
+    public Mono<TagResponseDTO> findTagById(String id)
     {
         return tagRepository.findById(id)
                 .map(TagAdapter::toDTO)
                 .switchIfEmpty(Mono.error(new RuntimeException("Tag with Id "+id +" not found")))
                 .doOnSuccess(response-> System.out.println(" Successfully retrieved Tag: "+ response))
-                .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+                .doOnError(error-> System.out.println(" Error finding Tag: "+ error));
     }
 
 
     @Override
-    public Mono<TagResponseDTO> findTagByName(String name)
+    public Flux<TagResponseDTO> findTagByName(String name)
     {
-        return tagRepository.findByName(name)
+        return tagRepository.findByNameContainingIgnoreCase(name)
                 .map(TagAdapter::toDTO)
                 .switchIfEmpty(Mono.error(new RuntimeException("Tag with name "+name+" not found")))
-                .doOnSuccess(response-> System.out.println(" Successfully retrieved Tag: "+ response))
-                .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+                .doOnNext(response-> System.out.println("Successfully retrieved Tag: "+ response))
+                .doOnError(error -> System.out.println(" Error finding Tag: "+ error))
+                .doOnComplete(()-> System.out.println("Fetched All the tags Containing :"+name));
     }
 
 
@@ -83,7 +84,7 @@ public class TagService implements ITagService {
         return tagRepository.findAllBy(pageable)
                 .map(TagAdapter::toDTO)
                 .doOnNext(response -> System.out.println("Fetched the Tags Successfully: " + response))
-                .doOnError(error -> System.out.println("Error getting Tags: " + error))
+                .doOnError(error -> System.out.println("Error Finding Tags: " + error))
                 .doOnComplete(() -> System.out.println("Fetched All the tags Successfully"));
     }
 }

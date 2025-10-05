@@ -1,11 +1,11 @@
 package com.example.QuoraReactiveApp.repositories;
 
-import com.example.QuoraReactiveApp.models.Comment;
+import com.example.QuoraReactiveApp.models.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Flux;
 
-public interface CommentRepository extends ReactiveMongoRepository<Comment,String> {
+public interface UserRepository extends ReactiveMongoRepository<User,String> {
 
-    Flux<Comment> findAllBy(Pageable pageable);
+    Flux<User> findUserBy(Pageable pageable);
 }

@@ -29,7 +29,7 @@ public class QuestionService implements IQuestionService {
     private final QuestionRepository questionRepository;
     private final TagService tagService;
     private final KafkaEventProducer kafkaEventProducer;
-    private final IQuestionIndexService iQuestionIndexService;
+    private final IQuestionIndexService questionIndexService;
     private final QuestionDocumentRepository questionDocumentRepository;
 
 
@@ -39,14 +39,17 @@ public class QuestionService implements IQuestionService {
         Question question = QuestionAdapter.toEntity(questionRequestDTO);
         return questionRepository.save(question)
                 .flatMap(savedQuestion->{
-                    iQuestionIndexService.createQuestionIndex(question); // dumping the question to elastic search
-                    //Increment usage count for all the tags
-                    if(savedQuestion.getTagIds()!=null && !savedQuestion.getTagIds().isEmpty()){
-                        return Flux.fromIterable(savedQuestion.getTagIds())
-                                .flatMap(tagService::incrementUsageCount)
-                                .then(Mono.just(savedQuestion));
-                    }
-                    return Mono.just(savedQuestion);
+                    // Index in Elasticsearch and continue the chain
+                    return questionIndexService.createQuestionIndex(savedQuestion)
+                            .then(Mono.defer(() -> {
+                                // Increment usage count for all the tags
+                                if(savedQuestion.getTagIds() != null && !savedQuestion.getTagIds().isEmpty()) {
+                                    return Flux.fromIterable(savedQuestion.getTagIds())
+                                            .flatMap(tagService::incrementUsageCount)
+                                            .then(Mono.just(savedQuestion));
+                                }
+                                return Mono.just(savedQuestion);
+                            }));
                 })
                 .flatMap(this::enrichQuestionWithTags)
                 .doOnNext(response -> System.out.println("Question created Successfully" + response))
@@ -54,7 +57,7 @@ public class QuestionService implements IQuestionService {
     }
 
     @Override
-    public Mono<QuestionResponseDTO> getQuestionById(String questionId) {
+    public Mono<QuestionResponseDTO> findQuestionById(String questionId) {
         return questionRepository.findById(questionId)
                 .flatMap(this::enrichQuestionWithTags)
                 .doOnSuccess(response -> {
@@ -63,14 +66,14 @@ public class QuestionService implements IQuestionService {
                             kafkaEventProducer.publishViewCountEvent(viewCountEvent);
                         }
                 )
-                .doOnError(error -> System.out.println("Error getting question: " + error));
+                .doOnError(error -> System.out.println("Error finding question: " + error));
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getAllQuestions() {
+    public Flux<QuestionResponseDTO> findAllQuestions() {
         return this.questionRepository.findAll().map(QuestionAdapter::toDTO)
                 .doOnNext(response -> System.out.println("Questions retrieved successfully: "+ response))
-                .doOnError(error -> System.out.println("Error getting all questions: " + error));
+                .doOnError(error -> System.out.println("Error finding all questions: " + error));
     }
 
 
@@ -97,7 +100,7 @@ public class QuestionService implements IQuestionService {
 
         return questionRepository.findByTitleOrContentContainingIgnoreCase(searchTerm, PageRequest.of(offset,pageSize))
                 .map(QuestionAdapter::toDTO)
-                .doOnError(error -> System.out.println("Error getting questions: " + error))
+                .doOnError(error -> System.out.println("Error finding questions: " + error))
                 .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
 
 
@@ -116,21 +119,21 @@ public class QuestionService implements IQuestionService {
         {
             return questionRepository.findTop10ByOrderByCreatedAtAsc(pageable)
                     .map(QuestionAdapter::toDTO)
-                    .doOnError(error -> System.out.println("Error getting questions: " + error))
+                    .doOnError(error -> System.out.println("Error finding questions: " + error))
                     .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
         }
         else{
             LocalDateTime cursorTimeStamp = CursorUtils.parseCursor(cursor);
             return questionRepository.findByCreatedAtGreaterThanOrderByCreatedAtAsc(cursorTimeStamp,pageable)
                     .map(QuestionAdapter::toDTO)
-                    .doOnError(error -> System.out.println("Error getting questions: " + error))
+                    .doOnError(error -> System.out.println("Error finding questions: " + error))
                     .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
         }
 
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getQuestionsByTags(List<String> tagIds, TagFilterType filterType, int page, int size) {
+    public Flux<QuestionResponseDTO> findQuestionsByTags(List<String> tagIds, TagFilterType filterType, int page, int size) {
         if(tagIds == null || tagIds.isEmpty())return Flux.empty();
         Pageable pageable = PageRequest.of(page,size);
 
@@ -144,7 +147,7 @@ public class QuestionService implements IQuestionService {
         return questionsFlux
                 .flatMap(this::enrichQuestionWithTags)
                 .doOnNext(response -> System.out.println("Question by tags retrieved successfully: " + response))
-                .doOnError(error -> System.out.println("Error getting questions by tags: " + error))
+                .doOnError(error -> System.out.println("Error finding questions by tags: " + error))
                 .doOnComplete(() -> System.out.println("All questions by tags retrieved successfully"));
 
     }
@@ -155,29 +158,32 @@ public class QuestionService implements IQuestionService {
         }
 
         return Flux.fromIterable(question.getTagIds())
-                .flatMap(tagService::getTagById)
+                .flatMap(tagService::findTagById)
                 .collectList()
                 .map(tagList -> QuestionAdapter.toDTOWithTags(question,tagList));
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getQuestionsByTagId(String tagId,int page,int size){
-       return getQuestionsByTags(List.of(tagId),TagFilterType.SINGLE,page,size);
+    public Flux<QuestionResponseDTO> findQuestionsByTagId(String tagId,int page,int size){
+       return findQuestionsByTags(List.of(tagId),TagFilterType.SINGLE,page,size);
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getQuestionsByAnyTags(List<String> tagIds, int page, int size) {
-        return getQuestionsByTags(tagIds, TagFilterType.ANY, page, size);
+    public Flux<QuestionResponseDTO> findQuestionsByAnyTags(List<String> tagIds, int page, int size) {
+        return findQuestionsByTags(tagIds, TagFilterType.ANY, page, size);
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getQuestionsByAllTags(List<String> tagIds, int page, int size) {
-        return getQuestionsByTags(tagIds, TagFilterType.ALL, page, size);
+    public Flux<QuestionResponseDTO> findQuestionsByAllTags(List<String> tagIds, int page, int size) {
+        return findQuestionsByTags(tagIds, TagFilterType.ALL, page, size);
     }
 
     @Override
-    public List<QuestionElasticDocument> searchQuestionsByElasticSearch(String query){
-        return questionDocumentRepository.findByTitleContainingOrContentContaining(query,query);
+    public Flux<QuestionElasticDocument> searchQuestionsByElasticSearch(String query){
+        return questionDocumentRepository.findByTitleContainingOrContentContaining(query,query)
+                .doOnNext(response -> System.out.println("All questions retrieved successfully"))
+                .doOnError(error -> System.out.println("Error finding questions: " + error))
+                .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 
 

@@ -26,12 +26,12 @@ public class LikeService implements ILikeService{
     }
 
     @Override
-    public Mono<LikeResponseDTO> getLikeById(String id) {
+    public Mono<LikeResponseDTO> findLikeById(String id) {
         return likeRepository.findById(id)
                 .map(LikeAdapter::toDTO)
                 .switchIfEmpty(Mono.error(new RuntimeException("Like with Id "+id +" not found")))
                 .doOnSuccess(response -> System.out.println("Like is Found Successfully: "+ response))
-                .doOnError(error -> System.out.println("Like get Failed: "+ error));
+                .doOnError(error -> System.out.println("Like find Failed: "+ error));
     }
 
     @Override
@@ -50,7 +50,7 @@ public class LikeService implements ILikeService{
     }
 
     @Override
-    public Mono<LikeResponseDTO> getLikeByTargetIdAndTargetType(String targetId, String targetType) {
+    public Mono<LikeResponseDTO> findLikeByTargetIdAndTargetType(String targetId, String targetType) {
         return null;
     }
 }

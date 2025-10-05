@@ -1,11 +1,10 @@
 package com.example.QuoraReactiveApp.repositories;
 
 import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+import org.springframework.data.elasticsearch.repository.ReactiveElasticsearchRepository;
+import reactor.core.publisher.Flux;
 
-import java.util.List;
+public interface QuestionDocumentRepository extends ReactiveElasticsearchRepository<QuestionElasticDocument,String> {
 
-public interface QuestionDocumentRepository extends ElasticsearchRepository<QuestionElasticDocument,String> {
-
-    List<QuestionElasticDocument> findByTitleContainingOrContentContaining(String title,String content);
+    Flux<QuestionElasticDocument> findByTitleContainingOrContentContaining(String title, String content);
 }

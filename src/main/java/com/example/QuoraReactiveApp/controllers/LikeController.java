@@ -25,9 +25,9 @@ public class LikeController {
     }
 
     @GetMapping("/{id}")
-    public Mono<LikeResponseDTO> getLikeById(@PathVariable  String id)
+    public Mono<LikeResponseDTO> findLikeById(@PathVariable  String id)
     {
-        return likeService.getLikeById(id)
+        return likeService.findLikeById(id)
                 .doOnSuccess(response -> System.out.println("Like of id : "+ id +" is retrieved successfully"))
                 .doOnError(error -> System.out.println("Like of id : "+ id +" retrival failed"));
     }

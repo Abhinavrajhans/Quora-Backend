@@ -22,36 +22,37 @@ public class TagController {
     {
         return  tagservice.createTag(tagRequestDTO)
                 .doOnSuccess(response-> System.out.println(" Successfully Tag Created : "+ response))
-                .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+                .doOnError(error-> System.out.println(" Error finding Tag: "+ error));
     }
 
 
     @GetMapping("/{id}")
-    public Mono<TagResponseDTO> getTagById(@PathVariable String id)
+    public Mono<TagResponseDTO> findTagById(@PathVariable String id)
     {
-        return  tagservice.getTagById(id)
+        return  tagservice.findTagById(id)
                 .doOnSuccess(response-> System.out.println(" Successfully Tag Created : "+ response))
-                .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+                .doOnError(error-> System.out.println(" Error finding Tag: "+ error));
     }
 
 
 
     @GetMapping("/name/{name}")
-    public Mono<TagResponseDTO> findTagByName(@PathVariable String name)
+    public Flux<TagResponseDTO> findTagByName(@PathVariable String name)
     {
         return  tagservice.findTagByName(name)
-                .doOnSuccess(response-> System.out.println(" Successfully Tag Created : "+ response))
-                .doOnError(error-> System.out.println(" Error getting Tag: "+ error));
+                .doOnNext(response-> System.out.println(" Successfully Tag Fetched : "+ response))
+                .doOnError(error-> System.out.println(" Error finding Tag: "+ error))
+                .doOnComplete(()-> System.out.println("Fetched All the tags Containing :"+name));
     }
 
     @GetMapping
-    public Flux<TagResponseDTO> getAllTags(
+    public Flux<TagResponseDTO> findAllTags(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         return tagservice.findAllTags(page, size)
                 .doOnNext(response -> System.out.println("Successfully retrieved Tags: " + response))
-                .doOnError(error -> System.out.println("Error getting Tags: " + error));
+                .doOnError(error -> System.out.println("Error finding Tags: " + error));
     }
 
 

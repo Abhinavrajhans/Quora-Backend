@@ -27,20 +27,20 @@ public class CommentController {
     }
 
     @GetMapping("/id/{id}")
-    public Mono<CommentResponseDTO> getCommentById(@PathVariable String id)
+    public Mono<CommentResponseDTO> findCommentById(@PathVariable String id)
     {
-        return commentService.getCommentById(id)
+        return commentService.findCommentById(id)
                 .doOnSuccess(response -> System.out.println("Comment of id : "+ id +" is retrieved successfully"))
                 .doOnError(error -> System.out.println("comment of id : "+ id +" retrival failed"));
     }
 
     @GetMapping
-    public Flux<CommentResponseDTO> getAllComments(
+    public Flux<CommentResponseDTO> findAllComments(
             @RequestParam(defaultValue="0")int page,
             @RequestParam(defaultValue="10") int size
     )
     {
-        return commentService.getAllComments(page,size)
+        return commentService.findAllComments(page,size)
                 .doOnNext(response -> System.out.println("All comments retrieved successfully"))
                 .doOnError(error -> System.out.println("All comments retrieved failed: " + error))
                 .doOnComplete(() -> System.out.println("All comments retrieved successfully"));

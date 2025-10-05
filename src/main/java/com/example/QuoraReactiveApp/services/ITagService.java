@@ -7,8 +7,8 @@ import reactor.core.publisher.Mono;
 
 public interface ITagService {
     public Mono<TagResponseDTO> createTag(TagRequestDTO tagRequestDTO);
-    public Mono<TagResponseDTO> getTagById(String id);
-    public Mono<TagResponseDTO> findTagByName(String name);
+    public Mono<TagResponseDTO> findTagById(String id);
+    public Flux<TagResponseDTO> findTagByName(String name);
     public Mono<TagResponseDTO> incrementUsageCount(String tagId);
     public Mono<TagResponseDTO> decrementUsageCount(String tagId);
     public Flux<TagResponseDTO> findAllTags(int page,int size);

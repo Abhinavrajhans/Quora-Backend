@@ -9,6 +9,6 @@ import reactor.core.publisher.Mono;
 public interface ICommentService {
 
     Mono<CommentResponseDTO> createComment(CommentRequestDTO commentRequestDTO);
-    Mono<CommentResponseDTO> getCommentById(String id);
-    Flux<CommentResponseDTO> getAllComments(int page ,int size);
+    Mono<CommentResponseDTO> findCommentById(String id);
+    Flux<CommentResponseDTO> findAllComments(int page ,int size);
 }

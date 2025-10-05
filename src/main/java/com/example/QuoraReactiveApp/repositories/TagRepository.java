@@ -11,7 +11,8 @@ import reactor.core.publisher.Mono;
 public interface TagRepository extends ReactiveMongoRepository<Tag, String> {
 
     Mono<Tag> findByName(String name);
-
+    Mono<Tag> findByNameIgnoreCase(String name);
+    Flux<Tag> findByNameContainingIgnoreCase(String name);
     Flux<Tag> findAllBy(Pageable pageable);
 
 }
