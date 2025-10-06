@@ -3,7 +3,6 @@ package com.example.QuoraReactiveApp.services;
 import com.example.QuoraReactiveApp.adapter.CommentAdapter;
 import com.example.QuoraReactiveApp.dto.CommentRequestDTO;
 import com.example.QuoraReactiveApp.dto.CommentResponseDTO;
-import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 import com.example.QuoraReactiveApp.models.Comment;
 import com.example.QuoraReactiveApp.repositories.CommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,7 @@ public class CommentService implements ICommentService{
             return commentRepository.save(comment)
                     .map(CommentAdapter::toDTO)
                     .doOnSuccess(response -> System.out.println("Comment created successfully: "+ response))
-                    .doOnError(error -> System.out.println("Comment created failed: " + error));
+                    .doOnError(error -> System.out.println("Comment creation failed: " + error));
     }
 
     @Override

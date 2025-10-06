@@ -37,6 +37,12 @@ public class User {
     @Size(max=500, message="Bio can't exceed 500 characters")
     private String bio;
 
+    @Builder.Default
+    private Integer followerCount=0;
+
+    @Builder.Default
+    private Integer followingCount=0;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

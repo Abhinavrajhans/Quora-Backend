@@ -49,5 +49,32 @@ public class UserService implements IUserService{
                 .doOnComplete(() -> System.out.println("Fetched All the Users Successfully"));
     }
 
+    @Override
+    public Mono<UserResponseDTO> incrementFollowerCount(String id)
+    {
+        return userRepository.findById(id)
+                .flatMap(user-> {
+                    user.setFollowerCount(user.getFollowerCount()+1);
+                    return userRepository.save(user);
+                })
+                .map(UserAdapter::toDTO)
+                .doOnSuccess(response -> System.out.println("User follower Count Incremented Successfully" + response))
+                .doOnError(throwable -> System.out.println("User follower Count Incrementation Failed" + throwable));
+
+    }
+
+    @Override
+    public Mono<UserResponseDTO> incrementFollowingCount(String id)
+    {
+        return userRepository.findById(id)
+                .flatMap(user->{
+                    user.setFollowingCount(user.getFollowingCount()+1);
+                    return userRepository.save(user);
+                })
+                .map(UserAdapter::toDTO)
+                .doOnSuccess(response -> System.out.println("User following Count Incremented Successfully" + response))
+                .doOnError(throwable -> System.out.println("User following Count Incrementation Failed" + throwable));
+    }
+
 
 }

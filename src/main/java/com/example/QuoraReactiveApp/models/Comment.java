@@ -13,9 +13,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 
-@Getter
+
 @Data
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,7 +24,7 @@ public class Comment {
     @Id
     private String id;
 
-    @NotBlank
+    @NotBlank(message="Text is required")
     @Size(min=2, max=1000 , message="The comment must be between 10 and 1000 Characters.")
     private String text;
 

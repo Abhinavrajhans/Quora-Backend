@@ -10,4 +10,6 @@ public interface IUserService {
     public Mono<UserResponseDTO> createUser(UserRequestDTO userRequestDTO);
     public Mono<UserResponseDTO> findUserById(String id);
     public Flux<UserResponseDTO> findAllUsers(int page ,int size);
+    public Mono<UserResponseDTO> incrementFollowerCount(String id);
+    public Mono<UserResponseDTO> incrementFollowingCount(String id);
 }

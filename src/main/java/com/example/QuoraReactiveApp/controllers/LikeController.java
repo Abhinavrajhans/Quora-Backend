@@ -2,9 +2,7 @@ package com.example.QuoraReactiveApp.controllers;
 
 import com.example.QuoraReactiveApp.dto.LikeRequestDTO;
 import com.example.QuoraReactiveApp.dto.LikeResponseDTO;
-import com.example.QuoraReactiveApp.models.Like;
-import com.example.QuoraReactiveApp.repositories.LikeRepository;
-import com.example.QuoraReactiveApp.services.LikeService;
+import com.example.QuoraReactiveApp.services.ILikeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +13,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class LikeController {
 
-    private final LikeService likeService;
+    private final ILikeService likeService;
 
     @PostMapping
     public Mono<LikeResponseDTO> createLike(@Valid @RequestBody LikeRequestDTO like) {

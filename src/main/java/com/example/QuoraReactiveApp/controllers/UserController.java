@@ -2,6 +2,7 @@ package com.example.QuoraReactiveApp.controllers;
 
 import com.example.QuoraReactiveApp.dto.UserRequestDTO;
 import com.example.QuoraReactiveApp.dto.UserResponseDTO;
+import com.example.QuoraReactiveApp.services.IUserService;
 import com.example.QuoraReactiveApp.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final IUserService userService;
 
     @PostMapping
     public Mono<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO)

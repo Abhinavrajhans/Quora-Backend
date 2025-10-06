@@ -3,10 +3,9 @@ package com.example.QuoraReactiveApp.controllers;
 
 import com.example.QuoraReactiveApp.dto.CommentRequestDTO;
 import com.example.QuoraReactiveApp.dto.CommentResponseDTO;
-import com.example.QuoraReactiveApp.services.CommentService;
+import com.example.QuoraReactiveApp.services.ICommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,14 +15,14 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class CommentController {
 
-    private final CommentService commentService;
+    private final ICommentService commentService;
 
     @PostMapping
     public Mono<CommentResponseDTO> createComment(@Valid @RequestBody CommentRequestDTO commentRequestDTO)
     {
         return commentService.createComment(commentRequestDTO)
                 .doOnSuccess(response -> System.out.println("Comment created successfully: " + response))
-                .doOnError(error -> System.out.println("Comment created failed: " + error));
+                .doOnError(error -> System.out.println("Comment creation failed: " + error));
     }
 
     @GetMapping("/id/{id}")

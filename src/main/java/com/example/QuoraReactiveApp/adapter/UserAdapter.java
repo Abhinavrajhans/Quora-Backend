@@ -12,6 +12,8 @@ public class UserAdapter {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .bio(user.getBio())
+                .followerCount(user.getFollowerCount())
+                .followingCount(user.getFollowingCount())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
@@ -22,6 +24,8 @@ public class UserAdapter {
                 .username(userRequestDTO.getUsername())
                 .email(userRequestDTO.getEmail())
                 .bio(userRequestDTO.getBio())
+                .followerCount(0)
+                .followingCount(0)
                 .build();
     }
 }
