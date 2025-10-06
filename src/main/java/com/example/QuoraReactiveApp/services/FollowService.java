@@ -23,7 +23,12 @@ public class FollowService implements IFollowService{
     @Override
     public Mono<FollowResponseDTO> createFollow(FollowRequestDTO followRequestDTO)
     {
-            Follow follow= FollowAdapter.toEntity(followRequestDTO);
+        // Validate that user is not following themselves
+        if (followRequestDTO.getFollowerId().equals(followRequestDTO.getFollowingId())) {
+            return Mono.error(new IllegalArgumentException("Cannot follow yourself"));
+        }
+
+        Follow follow= FollowAdapter.toEntity(followRequestDTO);
             return followRepository.save(follow)
                     .flatMap( savedFollow->{
                             Mono<UserResponseDTO> followedUser =userService.incrementFollowerCount(follow.getFollowingId());
