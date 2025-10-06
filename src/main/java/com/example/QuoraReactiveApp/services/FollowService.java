@@ -9,7 +9,6 @@ import com.example.QuoraReactiveApp.models.Follow;
 import com.example.QuoraReactiveApp.repositories.FollowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -47,18 +46,18 @@ public class FollowService implements IFollowService{
     }
 
     @Override
-    public Flux<FollowResponseDTO> findAllFollowersByUserId(String userId)
+    public Flux<FollowResponseDTO> findAllFollowersOfUserId(String userId)
     {
-            return followRepository.findByFollowerId(userId)
+        return followRepository.findByFollowingId(userId)
                     .doOnNext(response-> System.out.println("Succesfully got the follower "+response))
                     .doOnError(error-> System.out.println("Error in getting the follower :" +error))
                     .doOnComplete(()-> System.out.println("Successfully fetched all the follwers"));
     }
 
     @Override
-    public Flux<FollowResponseDTO> findAllFollowingByUserId(String userId)
+    public Flux<FollowResponseDTO> findAllFollowingOfUserId(String userId)
     {
-        return followRepository.findByFollowingId(userId)
+        return followRepository.findByFollowerId(userId)
                 .doOnNext(response-> System.out.println("Succesfully got the follower "+response))
                 .doOnError(error-> System.out.println("Error in getting the follower :" +error))
                 .doOnComplete(()-> System.out.println("Successfully fetched all the follwers"));

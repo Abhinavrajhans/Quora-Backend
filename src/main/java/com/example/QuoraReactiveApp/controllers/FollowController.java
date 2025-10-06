@@ -33,18 +33,18 @@ public class FollowController {
     }
 
     @GetMapping("/follower/{id}")
-    public Flux<FollowResponseDTO> findAllFollowersByUserId(@PathVariable String id)
+    public Flux<FollowResponseDTO> findAllFollowersOfUserId(@PathVariable String id)
     {
-        return followService.findAllFollowersByUserId(id)
+        return followService.findAllFollowersOfUserId(id)
                 .doOnNext(response -> System.out.println("Retrieved The follow :" + response))
                 .doOnError(error -> System.out.println("Error getting the follow " + error))
                 .doOnComplete(() -> System.out.println("Successfully got all the follow"));
     }
 
     @GetMapping("/following/{id}")
-    public Flux<FollowResponseDTO> findAllFollowingsByUserId(@PathVariable String id)
+    public Flux<FollowResponseDTO> findAllFollowingsOfUserId(@PathVariable String id)
     {
-        return followService.findAllFollowingByUserId(id)
+        return followService.findAllFollowingOfUserId(id)
                 .doOnNext(response -> System.out.println("Retrieved The following :" + response))
                 .doOnError(error -> System.out.println("Error getting the following " + error))
                 .doOnComplete(() -> System.out.println("Successfully got all the following"));

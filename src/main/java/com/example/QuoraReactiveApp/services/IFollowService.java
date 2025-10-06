@@ -9,6 +9,6 @@ public interface IFollowService {
 
     public Mono<FollowResponseDTO> createFollow(FollowRequestDTO followRequestDTO);
     public Mono<FollowResponseDTO> findFollowById(String id);
-    public Flux<FollowResponseDTO> findAllFollowersByUserId(String userId);
-    public Flux<FollowResponseDTO> findAllFollowingByUserId(String userId);
+    public Flux<FollowResponseDTO> findAllFollowersOfUserId(String userId);
+    public Flux<FollowResponseDTO> findAllFollowingOfUserId(String userId);
 }

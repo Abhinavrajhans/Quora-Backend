@@ -43,6 +43,9 @@ public class User {
     @Builder.Default
     private Integer followingCount=0;
 
+    @Builder.Default
+    private Integer views=0;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
