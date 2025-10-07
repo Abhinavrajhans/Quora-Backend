@@ -37,6 +37,9 @@ public class Question {
     @Indexed // for querying questions by tags
     private List<String> tagIds;
 
+    @NotBlank(message="CreatedBy is required.")
+    private String createdById;
+
     @Builder.Default
     private Integer views=0;
 

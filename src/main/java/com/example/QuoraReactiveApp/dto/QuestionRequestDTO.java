@@ -25,4 +25,8 @@ public class QuestionRequestDTO {
     //Tags IDs to associate with the question
     @Size(max=10,message="Maximum 10 tags allowed per question")
     private List<String> tagIds;
+
+    @NotBlank(message="CreatedById is required.")
+    private String createdById;
+
 }

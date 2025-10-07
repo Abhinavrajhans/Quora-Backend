@@ -19,6 +19,7 @@ public class QuestionResponseDTO {
     private String content;
     private List<String> tagIds;
     private List<TagResponseDTO> tags; //Poplutatted tags for convenience
+    private UserResponseDTO createdByUser;
     private LocalDateTime createdAt;
 
 }
