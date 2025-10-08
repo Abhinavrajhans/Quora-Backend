@@ -15,12 +15,16 @@ import reactor.core.publisher.Mono;
 public class AnswerService implements IAnswerService{
 
     private final AnswerRepository answerRepository;
+    private final IUserService userService;
 
     @Override
     public Mono<AnswerResponseDTO> createAnswer(AnswerRequestDTO answerRequestDTO){
-        Answer answer =  AnswerAdapter.toEntity(answerRequestDTO);
-        return answerRepository.save(answer)
-                .map(AnswerAdapter::toDTO)
+        return userService.findUserById(answerRequestDTO.getCreatedById())
+                .switchIfEmpty(Mono.error(new RuntimeException("User Does Not Exist")))
+                .flatMap(userResponseDTO->{
+                    return answerRepository.save(AnswerAdapter.toEntity(answerRequestDTO))
+                            .map(answer->AnswerAdapter.toDTO(answer,userResponseDTO));
+                })
                 .doOnSuccess(response -> System.out.println("Answer created successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer creation failed: " + error));
     }
@@ -29,7 +33,8 @@ public class AnswerService implements IAnswerService{
     @Override
     public Mono<AnswerResponseDTO> findAnswerById(String id){
         return answerRepository.findById(id)
-                .map(AnswerAdapter::toDTO)
+                .switchIfEmpty(Mono.error(new RuntimeException("Answer with Id " + id + " not found!")))
+                .flatMap(this::enrichAnswereWithUser)
                 .switchIfEmpty(Mono.error(new RuntimeException("Answer with Id "+id +" not found")))
                 .doOnSuccess(response -> System.out.println("Answer found successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer found failed: " + error));
@@ -38,11 +43,17 @@ public class AnswerService implements IAnswerService{
     @Override
     public Flux<AnswerResponseDTO> findAllAnswersByQuestionId(String questionId) {
         return answerRepository.findByQuestionId(questionId)
-                .map(AnswerAdapter::toDTO)
+                .flatMap(this::enrichAnswereWithUser)
                 .switchIfEmpty(Flux.error(new RuntimeException("No answers found for question ID: " + questionId)))
                 .doOnNext(response -> System.out.println("Answer found successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer found failed: " + error))
                 .doOnComplete(() -> System.out.println("All answers found successfully"));
+    }
+
+
+    public Mono<AnswerResponseDTO> enrichAnswereWithUser(Answer answer) {
+        return userService.findUserById(answer.getCreatedById())
+                .map(userResponseDTO -> AnswerAdapter.toDTO(answer,userResponseDTO));
     }
 
 

@@ -35,6 +35,9 @@ public class Answer {
     @Builder.Default
     private Integer views=0;
 
+    private String createdById;
+
+
     @CreatedDate
     @Indexed
     private LocalDateTime createdAt;

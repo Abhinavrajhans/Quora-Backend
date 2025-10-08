@@ -73,6 +73,7 @@ public class QuestionService implements IQuestionService {
     @Override
     public Mono<QuestionResponseDTO> findQuestionById(String questionId) {
         return questionRepository.findById(questionId)
+                .switchIfEmpty(Mono.error(new RuntimeException("Question with Id " + questionId + " not found!")))
                 .flatMap(this::enrichQuestionWithTagsAndUser)
                 .doOnSuccess(response -> {
                             System.out.println("Question retrieved successfully: " + response);
