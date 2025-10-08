@@ -94,6 +94,7 @@ public class QuestionService implements IQuestionService {
     @Override
     public Mono<Void> deleteQuestionById(String questionId) {
         return this.questionRepository.findById(questionId)
+                .flatMap(question->this.questionDocumentRepository.deleteById(question.getId()).thenReturn(question))
                 .flatMap(foundQuestion -> {
                     if (foundQuestion.getTagIds() != null && !foundQuestion.getTagIds().isEmpty()) {
                         return Flux.fromIterable(foundQuestion.getTagIds())
