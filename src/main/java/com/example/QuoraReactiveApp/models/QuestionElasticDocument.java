@@ -22,4 +22,6 @@ public class QuestionElasticDocument {
 
         private String content;
 
+        private String createdById;
+
 }

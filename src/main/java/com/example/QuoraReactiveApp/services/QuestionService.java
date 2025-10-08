@@ -9,7 +9,6 @@ import com.example.QuoraReactiveApp.events.ViewCountEvent;
 import com.example.QuoraReactiveApp.models.Question;
 import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
 import com.example.QuoraReactiveApp.models.Type.TagFilterType;
-import com.example.QuoraReactiveApp.models.User;
 import com.example.QuoraReactiveApp.producers.KafkaEventProducer;
 import com.example.QuoraReactiveApp.repositories.QuestionDocumentRepository;
 import com.example.QuoraReactiveApp.repositories.QuestionRepository;
@@ -38,26 +37,37 @@ public class QuestionService implements IQuestionService {
 
 
     @Override
-    public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO)
-    {
-        Question question = QuestionAdapter.toEntity(questionRequestDTO);
-        return questionRepository.save(question)
-                .flatMap(savedQuestion->{
-                    // Index in Elasticsearch and continue the chain
-                    return questionIndexService.createQuestionIndex(savedQuestion)
-                            .then(Mono.defer(() -> {
-                                // Increment usage count for all the tags
-                                if(savedQuestion.getTagIds() != null && !savedQuestion.getTagIds().isEmpty()) {
-                                    return Flux.fromIterable(savedQuestion.getTagIds())
-                                            .flatMap(tagService::incrementUsageCount)
-                                            .then(Mono.just(savedQuestion));
+    public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
+        return userService.findUserById(questionRequestDTO.getCreatedById())
+                .switchIfEmpty(Mono.error(new RuntimeException("User with Id " + questionRequestDTO.getCreatedById() + " not found")))
+                .flatMap(user -> {
+                    Question question = QuestionAdapter.toEntity(questionRequestDTO);
+                    return questionRepository.save(question)
+                            .flatMap(savedQuestion -> {
+                                if (savedQuestion.getTagIds() == null || savedQuestion.getTagIds().isEmpty()) {
+                                    // No tags case
+                                    return questionIndexService.createQuestionIndex(savedQuestion)
+                                            .thenReturn(QuestionAdapter.toDTO(savedQuestion, user));
                                 }
-                                return Mono.just(savedQuestion);
-                            }));
+                                // ✅ All three operations in parallel
+                                Mono<Void> indexMono = questionIndexService.createQuestionIndex(savedQuestion);
+                                Mono<List<TagResponseDTO>> tagsMono = tagService.findTagsByIds(savedQuestion.getTagIds());
+                                Mono<Void> incrementMono = Flux.fromIterable(savedQuestion.getTagIds())
+                                        .flatMap(tagService::incrementUsageCount)
+                                        .then();
+
+                                return Mono.zip(indexMono.then(Mono.just(1)), tagsMono, incrementMono.then(Mono.just(1)))
+                                        .map(tuple -> QuestionAdapter.toDTOWithTagsAndUser(
+                                                savedQuestion,
+                                                tuple.getT2(),
+                                                user
+                                        ));
+                            });
                 })
-                .flatMap(this::enrichQuestionWithTagsAndUser)
-                .doOnNext(response -> System.out.println("Question created Successfully" + response))
-                .doOnError(throwable -> System.out.println("Question created Failed" + throwable));
+                .doOnSuccess(response ->
+                        System.out.println("✅ Question created: " + response.getId()))
+                .doOnError(error ->
+                        System.err.println("❌ Question creation failed: " + error.getMessage()));
     }
 
     @Override
@@ -75,11 +85,11 @@ public class QuestionService implements IQuestionService {
 
     @Override
     public Flux<QuestionResponseDTO> findAllQuestions() {
-        return this.questionRepository.findAll().map(QuestionAdapter::toDTO)
+        return this.questionRepository.findAll()
+                .flatMap(this::enrichQuestionWithUser)  // ← Now includes user!
                 .doOnNext(response -> System.out.println("Questions retrieved successfully: "+ response))
                 .doOnError(error -> System.out.println("Error finding all questions: " + error));
     }
-
 
     @Override
     public Mono<Void> deleteQuestionById(String questionId) {
@@ -101,13 +111,10 @@ public class QuestionService implements IQuestionService {
 
     @Override
     public Flux<QuestionResponseDTO> searchQuestions(String searchTerm, Integer offset, Integer pageSize) {
-
         return questionRepository.findByTitleOrContentContainingIgnoreCase(searchTerm, PageRequest.of(offset,pageSize))
-                .map(QuestionAdapter::toDTO)
+                .flatMap(this::enrichQuestionWithTagsAndUser)
                 .doOnError(error -> System.out.println("Error finding questions: " + error))
                 .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
-
-
     }
 
     @Override
@@ -118,22 +125,17 @@ public class QuestionService implements IQuestionService {
 
         // now we have to check if they have passed the cursor to us or not , for that we have to create a cursor util.
         //now the most important thing is now the ordering should be done using createdAt.
-        Pageable pageable = PageRequest.of(0,size);
-        if(!CursorUtils.isValidCursor(cursor))
-        {
-            return questionRepository.findTop10ByOrderByCreatedAtAsc(pageable)
-                    .map(QuestionAdapter::toDTO)
-                    .doOnError(error -> System.out.println("Error finding questions: " + error))
-                    .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
-        }
-        else{
-            LocalDateTime cursorTimeStamp = CursorUtils.parseCursor(cursor);
-            return questionRepository.findByCreatedAtGreaterThanOrderByCreatedAtAsc(cursorTimeStamp,pageable)
-                    .map(QuestionAdapter::toDTO)
-                    .doOnError(error -> System.out.println("Error finding questions: " + error))
-                    .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
-        }
+        Pageable pageable = PageRequest.of(0, size);
 
+        Flux<Question> questionsFlux = !CursorUtils.isValidCursor(cursor)
+                ? questionRepository.findTop10ByOrderByCreatedAtAsc(pageable)
+                : questionRepository.findByCreatedAtGreaterThanOrderByCreatedAtAsc(
+                CursorUtils.parseCursor(cursor), pageable);
+
+        return questionsFlux
+                .flatMap(this::enrichQuestionWithUser)  // ← Add user enrichment
+                .doOnError(error -> System.out.println("Error finding questions: " + error))
+                .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
 
     @Override
@@ -169,9 +171,7 @@ public class QuestionService implements IQuestionService {
             return userMono.map(user -> QuestionAdapter.toDTO(question, user));
         }
 
-        Mono<List<TagResponseDTO>> tagsMono = Flux.fromIterable(question.getTagIds())
-                .flatMap(tagService::findTagById)
-                .collectList();
+        Mono<List<TagResponseDTO>> tagsMono = tagService.findTagsByIds(question.getTagIds());
 
         return Mono.zip(userMono, tagsMono)
                 .map(tuple -> QuestionAdapter.toDTOWithTagsAndUser(
@@ -215,4 +215,12 @@ public class QuestionService implements IQuestionService {
     }
 
 
+    public Mono<Void> syncElasticSearchData() {
+        return questionDocumentRepository.deleteAll()
+                .thenMany(questionRepository.findAll())  // Use thenMany since findAll() returns Flux
+                .flatMap(questionIndexService::createQuestionIndex)  // This returns Mono<Void> for each
+                .then()  // Collect all Mono<Void> into a single Mono<Void>
+                .doOnSuccess(v -> System.out.println("All question indexes synced successfully"))
+                .doOnError(error -> System.err.println("Error syncing indexes: " + error.getMessage()));
+    }
 }

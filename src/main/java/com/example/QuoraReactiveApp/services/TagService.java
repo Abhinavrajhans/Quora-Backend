@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TagService implements ITagService {
@@ -86,5 +88,17 @@ public class TagService implements ITagService {
                 .doOnNext(response -> System.out.println("Fetched the Tags Successfully: " + response))
                 .doOnError(error -> System.out.println("Error Finding Tags: " + error))
                 .doOnComplete(() -> System.out.println("Fetched All the tags Successfully"));
+    }
+
+    @Override
+    public Mono<List<TagResponseDTO>> findTagsByIds(List<String> tagIds)
+    {
+        if(tagIds==null || tagIds.isEmpty()) return Mono.just(List.of());
+
+        return tagRepository.findAllById(tagIds)
+                .map(TagAdapter::toDTO)
+                .collectList()
+                .doOnSuccess(tags -> System.out.println("✅ Fetched " + tags.size() + " tags in batch"))
+                .doOnError(error -> System.err.println("❌ Error fetching tags: " + error.getMessage()));
     }
 }

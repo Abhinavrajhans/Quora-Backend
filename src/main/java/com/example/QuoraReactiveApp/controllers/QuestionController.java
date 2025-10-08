@@ -119,4 +119,11 @@ public class QuestionController {
                 .doOnError(error -> System.out.println("Error finding all questions: " + error))
                 .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
     }
+
+    @GetMapping("/sync-elasticsearch")
+    public Mono<String> syncElasticSearch() {
+        return questionService.syncElasticSearchData()
+                .then(Mono.just("Elasticsearch synced successfully"))
+                .onErrorResume(e -> Mono.just("Sync failed: " + e.getMessage()));
+    }
 }
