@@ -2,17 +2,19 @@ package com.example.QuoraReactiveApp.adapter;
 
 import com.example.QuoraReactiveApp.dto.LikeRequestDTO;
 import com.example.QuoraReactiveApp.dto.LikeResponseDTO;
+import com.example.QuoraReactiveApp.dto.UserResponseDTO;
 import com.example.QuoraReactiveApp.models.Like;
 
 public class LikeAdapter {
 
-    public static LikeResponseDTO toDTO(Like like)
+    public static LikeResponseDTO toDTO(Like like, UserResponseDTO userResponseDTO)
     {
         return LikeResponseDTO.builder()
                 .id(like.getId())
                 .targetId(like.getTargetId())
                 .likeType(like.getLikeType())
                 .isLike(like.getIsLike())
+                .user(userResponseDTO)
                 .createdDate(like.getCreatedAt())
                 .build();
     }
@@ -22,6 +24,7 @@ public class LikeAdapter {
                 .targetId(dto.getTargetId())
                 .likeType(dto.getLikeType())
                 .isLike(dto.getIsLike())
+                .createdById(dto.getCreatedById())
                 .build();
     }
 }

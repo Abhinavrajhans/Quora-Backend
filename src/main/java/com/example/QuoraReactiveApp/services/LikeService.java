@@ -15,12 +15,13 @@ import reactor.core.publisher.Mono;
 public class LikeService implements ILikeService{
 
     private final LikeRepository likeRepository;
+    private final UserService userService;
 
     @Override
     public Mono<LikeResponseDTO> createLike(LikeRequestDTO like) {
         Like likeEntity= LikeAdapter.toEntity(like);
         return likeRepository.save(likeEntity)
-                .map(LikeAdapter::toDTO)
+                .flatMap(this::enrichLikeWithUser)
                 .doOnSuccess(response -> System.out.println("Like is Created Successfully: "+ response))
                 .doOnError(error -> System.out.println("Like creation Failed: "+ error));
     }
@@ -28,11 +29,18 @@ public class LikeService implements ILikeService{
     @Override
     public Mono<LikeResponseDTO> findLikeById(String id) {
         return likeRepository.findById(id)
-                .map(LikeAdapter::toDTO)
+                .flatMap(this::enrichLikeWithUser)
                 .switchIfEmpty(Mono.error(new RuntimeException("Like with Id "+id +" not found")))
                 .doOnSuccess(response -> System.out.println("Like is Found Successfully: "+ response))
                 .doOnError(error -> System.out.println("Like find Failed: "+ error));
     }
+
+    @Override
+    public Mono<LikeResponseDTO> enrichLikeWithUser(Like like) {
+        return userService.findUserById(like.getCreatedById())
+                .map(userResponseDTO->LikeAdapter.toDTO(like,userResponseDTO));
+    }
+
 
     @Override
     public Mono<LikeResponseDTO> countLikeByTargetAndTargetTypeAndUserID(String targetId, String targetType) {

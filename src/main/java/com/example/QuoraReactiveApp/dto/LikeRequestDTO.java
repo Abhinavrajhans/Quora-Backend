@@ -21,4 +21,7 @@ public class LikeRequestDTO {
 
     @NotNull(message = "Is Like is required")
     private Boolean isLike;
+
+    @NotBlank(message="CreatedById is required")
+    private String createdById;
 }

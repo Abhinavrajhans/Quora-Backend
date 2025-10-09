@@ -18,6 +18,7 @@ public class LikeResponseDTO {
     private String targetId;
     private LikeType likeType;
     private Boolean isLike;
+    private UserResponseDTO user;
     private LocalDateTime createdDate;
 
 }
