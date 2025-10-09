@@ -34,6 +34,9 @@ public class Comment {
     @NotNull(message="Target Type is required")
     private CommentType targetType;
 
+    @NotBlank(message="CreatedById is required")
+    private String createdById;
+
     @Builder.Default
     private Integer views=0;
 

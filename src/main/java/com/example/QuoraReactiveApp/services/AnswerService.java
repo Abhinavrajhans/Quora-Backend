@@ -35,7 +35,6 @@ public class AnswerService implements IAnswerService{
         return answerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Answer with Id " + id + " not found!")))
                 .flatMap(this::enrichAnswereWithUser)
-                .switchIfEmpty(Mono.error(new RuntimeException("Answer with Id "+id +" not found")))
                 .doOnSuccess(response -> System.out.println("Answer found successfully: "+ response))
                 .doOnError(error -> System.out.println("Answer found failed: " + error));
     }
