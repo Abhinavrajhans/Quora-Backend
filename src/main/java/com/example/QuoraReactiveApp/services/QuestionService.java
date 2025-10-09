@@ -10,7 +10,6 @@ import com.example.QuoraReactiveApp.models.Question;
 import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
 import com.example.QuoraReactiveApp.models.Type.TagFilterType;
 import com.example.QuoraReactiveApp.producers.KafkaEventProducer;
-import com.example.QuoraReactiveApp.repositories.QuestionDocumentRepository;
 import com.example.QuoraReactiveApp.repositories.QuestionRepository;
 import com.example.QuoraReactiveApp.utils.CursorUtils;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,6 @@ public class QuestionService implements IQuestionService {
     private final TagService tagService;
     private final KafkaEventProducer kafkaEventProducer;
     private final IQuestionIndexService questionIndexService;
-    private final QuestionDocumentRepository questionDocumentRepository;
     private final UserService userService;
 
 
@@ -95,7 +93,7 @@ public class QuestionService implements IQuestionService {
     @Override
     public Mono<Void> deleteQuestionById(String questionId) {
         return this.questionRepository.findById(questionId)
-                .flatMap(question->this.questionDocumentRepository.deleteById(question.getId()).thenReturn(question))
+                .flatMap(question->this.questionIndexService.deleteQuestionById(question.getId()).thenReturn(question))
                 .flatMap(foundQuestion -> {
                     if (foundQuestion.getTagIds() != null && !foundQuestion.getTagIds().isEmpty()) {
                         return Flux.fromIterable(foundQuestion.getTagIds())
@@ -210,15 +208,12 @@ public class QuestionService implements IQuestionService {
 
     @Override
     public Flux<QuestionElasticDocument> searchQuestionsByElasticSearch(String query){
-        return questionDocumentRepository.findByTitleContainingOrContentContaining(query,query)
-                .doOnNext(response -> System.out.println("All questions retrieved successfully"))
-                .doOnError(error -> System.out.println("Error finding questions: " + error))
-                .doOnComplete(() -> System.out.println("All questions retrieved successfully"));
+        return questionIndexService.searchQuestionsByElasticSearch(query);
     }
 
 
     public Mono<Void> syncElasticSearchData() {
-        return questionDocumentRepository.deleteAll()
+        return questionIndexService.deleteAllQuestions()
                 .thenMany(questionRepository.findAll())  // Use thenMany since findAll() returns Flux
                 .flatMap(questionIndexService::createQuestionIndex)  // This returns Mono<Void> for each
                 .then()  // Collect all Mono<Void> into a single Mono<Void>
