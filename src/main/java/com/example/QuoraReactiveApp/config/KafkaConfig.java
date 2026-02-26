@@ -1,5 +1,6 @@
 package com.example.QuoraReactiveApp.config;
 
+import com.example.QuoraReactiveApp.events.QuestionCreatedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -28,6 +29,7 @@ public class KafkaConfig {
     private String groupId;
 
     public static final String TOPIC_NAME="view-count-topic";
+    public static final String TOPIC_QUESTION_CREATED="question-created-topic";
 
     // ------------------- Producer -------------------
     @Bean
@@ -55,13 +57,35 @@ public class KafkaConfig {
     // ------------------- Consumer -------------------
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
-
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.example.QuoraReactiveApp.events");
+        configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.QuoraReactiveApp.events.ViewCountEvent");
         return new DefaultKafkaConsumerFactory<>(configProps);
+    }
+
+    @Bean
+    public ConsumerFactory<String, QuestionCreatedEvent> questionCreatedConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "feed-consumer");
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.example.QuoraReactiveApp.events");
+        configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.QuoraReactiveApp.events.QuestionCreatedEvent");
+        return new DefaultKafkaConsumerFactory<>(configProps);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, QuestionCreatedEvent> feedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, QuestionCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(questionCreatedConsumerFactory());
+        factory.setConcurrency(5);
+        return factory;
     }
 }

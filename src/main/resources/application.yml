@@ -6,14 +6,10 @@ spring:
     mongodb:
       host: localhost
       port: 27017
-      database: quora_db
+      database: search_ahead_db
       auto-index-creation: true
 
-    elasticsearch:
-      repositories:
-        enabled: true
-
-
-  elasticsearch:
-    uris: http://localhost:9200
-
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: view-count-consumer

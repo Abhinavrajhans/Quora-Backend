@@ -5,12 +5,14 @@ import com.example.QuoraReactiveApp.dto.QuestionRequestDTO;
 import com.example.QuoraReactiveApp.dto.QuestionResponseDTO;
 import com.example.QuoraReactiveApp.dto.TagResponseDTO;
 import com.example.QuoraReactiveApp.dto.UserResponseDTO;
+import com.example.QuoraReactiveApp.events.QuestionCreatedEvent;
 import com.example.QuoraReactiveApp.events.ViewCountEvent;
 import com.example.QuoraReactiveApp.models.Question;
 import com.example.QuoraReactiveApp.models.QuestionElasticDocument;
 import com.example.QuoraReactiveApp.models.Type.TagFilterType;
 import com.example.QuoraReactiveApp.producers.KafkaEventProducer;
 import com.example.QuoraReactiveApp.repositories.QuestionRepository;
+import com.example.QuoraReactiveApp.repositories.UserFeedRepository;
 import com.example.QuoraReactiveApp.utils.CursorUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +34,7 @@ public class QuestionService implements IQuestionService {
     private final KafkaEventProducer kafkaEventProducer;
     private final IQuestionIndexService questionIndexService;
     private final UserService userService;
+    private final UserFeedRepository userFeedRepository;
 
 
     @Override
@@ -62,8 +65,15 @@ public class QuestionService implements IQuestionService {
                                         ));
                             });
                 })
-                .doOnSuccess(response ->
-                        System.out.println("✅ Question created: " + response.getId()))
+                .doOnSuccess(response -> {
+                        System.out.println("✅ Question created: " + response.getId());
+                        QuestionCreatedEvent event = new QuestionCreatedEvent(
+                                response.getId(),
+                                response.getCreatedByUser() != null ? response.getCreatedByUser().getId() : null,
+                                LocalDateTime.now()
+                        );
+                        kafkaEventProducer.publishQuestionCreatedEvent(event);
+                })
                 .doOnError(error ->
                         System.err.println("❌ Question creation failed: " + error.getMessage()));
     }
@@ -95,12 +105,14 @@ public class QuestionService implements IQuestionService {
         return this.questionRepository.findById(questionId)
                 .flatMap(question->this.questionIndexService.deleteQuestionById(question.getId()).thenReturn(question))
                 .flatMap(foundQuestion -> {
+                    Mono<Void> feedCleanup = userFeedRepository.deleteAllByQuestionId(questionId);
                     if (foundQuestion.getTagIds() != null && !foundQuestion.getTagIds().isEmpty()) {
                         return Flux.fromIterable(foundQuestion.getTagIds())
                                 .flatMap(tagService::decrementUsageCount)
+                                .then(feedCleanup)
                                 .then(this.questionRepository.deleteById(questionId));
                     }
-                    return this.questionRepository.deleteById(questionId);
+                    return feedCleanup.then(this.questionRepository.deleteById(questionId));
                 })
                 .doOnSuccess(ignored ->
                         System.out.println("✅ The Question with ID " + questionId + " got deleted successfully"))
@@ -159,7 +171,7 @@ public class QuestionService implements IQuestionService {
     }
 
     // Full enrichment - user and tags
-    private Mono<QuestionResponseDTO> enrichQuestionWithTagsAndUser(Question question) {
+    public Mono<QuestionResponseDTO> enrichQuestionWithTagsAndUser(Question question) {
         if(question.getCreatedById() == null || question.getCreatedById().isEmpty()) {
             return Mono.just(QuestionAdapter.toDTO(question));
         }
